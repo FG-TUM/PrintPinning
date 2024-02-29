@@ -30,6 +30,7 @@ execute_process(
     COMMAND grep "NUMA node(s):"
     COMMAND grep --only-matching "[0-9]*"
     OUTPUT_VARIABLE NUMA_NODES
+    OUTPUT_STRIP_TRAILING_WHITESPACE
     RESULT_VARIABLE result
 )
 if("${NUMA_NODES}" STREQUAL "" AND NOT ${result} EQUAL 0)
@@ -39,7 +40,7 @@ set(NUMA_NODES ${NUMA_NODES} CACHE STRING "Number of NUMA nodes")
 
 target_compile_definitions(
     ${PROJECT_NAME}
-    PRIVATE 
-    "THREADS_PER_CORE=${THREADS_PER_CORE}" 
-    "NUMA_NODES=${NUMA_NODES}"
+    PUBLIC 
+    THREADS_PER_CORE=${THREADS_PER_CORE}
+    NUMA_NODES=${NUMA_NODES}
 )
