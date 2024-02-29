@@ -10,6 +10,8 @@ Mini tool to quickly analyze where threads are placed on the hardware.
 - (optional) lscpu
 - (optional) grep
 
+Optional requirements are to detect hardware characteristics automatically. If this fails the user can set them in CMake manually.
+
 ## Build
 
 ```bash
