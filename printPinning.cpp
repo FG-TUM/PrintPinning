@@ -10,8 +10,8 @@ int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
 
   // CONFIGURE THIS FOR THE CURRENT SYSTEM
-  const size_t threadsPerCore = 2;
-  const size_t numNUMA = 4;
+  const size_t threadsPerCore = THREADS_PER_CORE;
+  const size_t numNUMA = NUMA_NODES;
 
   // Number of cores, including virtual ones per NUMA node.
   const size_t numCPU = std::thread::hardware_concurrency();
@@ -31,7 +31,6 @@ int main(int argc, char **argv) {
     if (rank == myRank) {
 #pragma omp parallel
       {
-        usleep(100);
         const auto threadId = omp_get_thread_num();
         const auto cpuID = sched_getcpu();
         const auto core = cpuID % numCores;

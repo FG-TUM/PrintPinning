@@ -1,30 +1,45 @@
 cmake_minimum_required(VERSION 3.10)
 project(printPinning)
 
+# Find dependencies
 find_package(MPI REQUIRED)
 find_package(OpenMP REQUIRED)
 
-# One can switch of MPI support entirely with this
-# if(MPI_FOUND)
-#     include_directories(${MPI_INCLUDE_PATH})
-#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
-#     set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
-# else(MPI_FOUND)
-#     message(SEND_ERROR "This application cannot compile without MPI")
-#     return()       
-# endif(MPI_FOUND)
-
-# # Add executable 
-# add_executable(${PROJECT_NAME} printPinning.cpp)
-
-# # Link against MPI, OpenMP and -fopenmp
-# target_link_libraries(${PROJECT_NAME} ${MPI_LIBRARIES} OpenMP::OpenMP_CXX)
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     COMPILE_FLAGS "${MPI_CXX_COMPILE_FLAGS} ${OpenMP_CXX_FLAGS}"
-#     LINK_FLAGS "${MPI_CXX_LINK_FLAGS} ${OpenMP_CXX_FLAGS}"
-# )
-
-
+# Create target and link dependencies
 add_executable(printPinning printPinning.cpp)
-
 target_link_libraries(printPinning MPI::MPI_CXX OpenMP::OpenMP_CXX)
+
+# Get system parameters and parametrize the target
+# Number of threads per core
+execute_process(
+    COMMAND lscpu
+    COMMAND grep "Thread(s) per core:"
+    COMMAND grep --only-matching "[0-9]*"
+    OUTPUT_VARIABLE THREADS_PER_CORE 
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE result
+)
+if("${THREADS_PER_CORE}" STREQUAL "" AND NOT ${result} EQUAL 0)
+    message(WARNING "Failed to get the number of threads per core.")
+endif()
+set(THREADS_PER_CORE ${THREADS_PER_CORE} CACHE STRING "Number of threads per core")
+
+# Number of NUMA nodes
+execute_process(
+    COMMAND lscpu
+    COMMAND grep "NUMA node(s):"
+    COMMAND grep --only-matching "[0-9]*"
+    OUTPUT_VARIABLE NUMA_NODES
+    RESULT_VARIABLE result
+)
+if("${NUMA_NODES}" STREQUAL "" AND NOT ${result} EQUAL 0)
+    message(WARNING "Failed to get the number of NUMA nodes.")
+endif()
+set(NUMA_NODES ${NUMA_NODES} CACHE STRING "Number of NUMA nodes")
+
+target_compile_definitions(
+    ${PROJECT_NAME}
+    PRIVATE 
+    "THREADS_PER_CORE=${THREADS_PER_CORE}" 
+    "NUMA_NODES=${NUMA_NODES}"
+)
