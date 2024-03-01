@@ -28,20 +28,23 @@ set(THREADS_PER_CORE ${THREADS_PER_CORE} CACHE STRING "Number of threads per cor
 # Number of NUMA nodes
 execute_process(
     COMMAND lscpu
-    COMMAND grep "NUMA node(s):"
-    COMMAND grep --only-matching "[0-9]*"
-    OUTPUT_VARIABLE NUMA_NODES
+    COMMAND grep --extended-regexp "NUMA node[0-9]\+"
+    COMMAND grep --extended-regexp --only-matching "\([0-9]\+-[0-9]\+,*\)\+"
+    OUTPUT_VARIABLE NUMA_DOMAINS
     OUTPUT_STRIP_TRAILING_WHITESPACE
     RESULT_VARIABLE result
 )
-if("${NUMA_NODES}" STREQUAL "" AND NOT ${result} EQUAL 0)
+if("${NUMA_DOMAINS}" STREQUAL "" AND NOT ${result} EQUAL 0)
     message(WARNING "Failed to get the number of NUMA nodes.")
 endif()
-set(NUMA_NODES ${NUMA_NODES} CACHE STRING "Number of NUMA nodes")
+# transform the parsed intervals to vector initializer syntax
+string(REPLACE "\n" "|" NUMA_DOMAINS "${NUMA_DOMAINS}")
+string(REPLACE "," "_" NUMA_DOMAINS "${NUMA_DOMAINS}")
+set(NUMA_DOMAINS ${NUMA_DOMAINS} CACHE STRING "Number of NUMA nodes")
 
 target_compile_definitions(
     ${PROJECT_NAME}
-    PUBLIC 
+    PUBLIC
     THREADS_PER_CORE=${THREADS_PER_CORE}
-    NUMA_NODES=${NUMA_NODES}
+    NUMA_DOMAINS=${NUMA_DOMAINS}
 )
