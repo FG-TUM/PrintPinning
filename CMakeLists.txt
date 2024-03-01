@@ -7,6 +7,7 @@ find_package(OpenMP REQUIRED)
 
 # Create target and link dependencies
 add_executable(printPinning printPinning.cpp)
+target_compile_features(printPinning PRIVATE cxx_std_17)
 target_link_libraries(printPinning MPI::MPI_CXX OpenMP::OpenMP_CXX)
 
 # Get system parameters and parametrize the target
