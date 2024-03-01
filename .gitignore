@@ -34,3 +34,12 @@
 # build folders
 build/
 cmake-*/
+
+# editor stuff
+*.swp
+.idea/
+venv/
+*.timestamp
+*.synctex.gz
+.clangd/
+.cache/
